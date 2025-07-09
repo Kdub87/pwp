@@ -6,11 +6,14 @@ const connectDB = async () => {
     process.exit(1);
   }
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB connected');
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+    console.log(`MongoDB connected: ${conn.connection.host}`);
   } catch (err) {
-    console.error(err.message);
-    process.exit(1);
+    console.error('MongoDB connection error:', err.message);
+    // Don't exit in development, just log the error
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    }
   }
 };
 

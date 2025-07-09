@@ -8,8 +8,19 @@ const LoadSchema = new mongoose.Schema({
   deliveryDate: { type: Date, required: true },
   rate: { type: Number, required: true },
   driver: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver' },
-  status: { type: String, enum: ['pending', 'in-transit', 'delivered'], default: 'pending' },
+  truck: { type: mongoose.Schema.Types.ObjectId, ref: 'Truck' },
+  status: { type: String, enum: ['pending', 'assigned', 'in-transit', 'delivered', 'cancelled'], default: 'pending' },
+  priority: { type: String, enum: ['low', 'medium', 'high', 'urgent'], default: 'medium' },
+  distance: { type: Number },
+  weight: { type: Number },
   invoiceGenerated: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+LoadSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 module.exports = mongoose.model('Load', LoadSchema);

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Load = require('../models/Load');
+const { auth } = require('../middleware/auth');
 
 // GET /loads: Get all loads (read-only for brokers)
-router.get('/loads', async (req, res) => {
+router.get('/loads', auth, async (req, res) => {
   try {
     const loads = await Load.find({}, 'loadId pickupLocation deliveryLocation status driver')
       .populate('driver', 'name email phone');
@@ -14,7 +15,7 @@ router.get('/loads', async (req, res) => {
 });
 
 // GET /loads/:id: Get a load by ID
-router.get('/loads/:id', async (req, res) => {
+router.get('/loads/:id', auth, async (req, res) => {
   try {
     const load = await Load.findById(req.params.id, 'loadId pickupLocation deliveryLocation status driver')
       .populate('driver', 'name email phone');

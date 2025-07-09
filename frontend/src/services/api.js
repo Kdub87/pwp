@@ -1,27 +1,102 @@
 import axios from "axios";
 
+// Get API URL from environment or use default
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 const apiClient = axios.create({
-  baseURL: "http://localhost:5000/api"
+  baseURL: API_URL
 });
 
+// Handle request interceptor for authentication
 apiClient.interceptors.request.use(config => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
+// Handle response interceptor for error handling
+apiClient.interceptors.response.use(
+  response => response,
+  error => {
+    // Handle token expiration
+    if (error.response && error.response.status === 401) {
+      // Check if the error is not from the login endpoint
+      if (!error.config.url.includes('/auth/login')) {
+        // Clear local storage and redirect to login
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return Promise.reject({ message: 'Session expired. Please login again.' });
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 const api = {
+  // Load management
   getLoads: async () => {
     const res = await apiClient.get("/loads");
     return res.data;
   },
+  createLoad: async (loadData) => {
+    const res = await apiClient.post("/loads", loadData);
+    return res.data;
+  },
+  updateLoad: async (id, loadData) => {
+    const res = await apiClient.put(`/loads/${id}`, loadData);
+    return res.data;
+  },
+  
+  // Driver management
   getDrivers: async () => {
     const res = await apiClient.get("/drivers");
     return res.data;
   },
+  createDriver: async (driverData) => {
+    const res = await apiClient.post("/drivers", driverData);
+    return res.data;
+  },
+  updateDriver: async (id, driverData) => {
+    const res = await apiClient.put(`/drivers/${id}`, driverData);
+    return res.data;
+  },
+  
+  // Truck management
+  getTrucks: async () => {
+    const res = await apiClient.get("/trucks");
+    return res.data;
+  },
+  createTruck: async (truckData) => {
+    const res = await apiClient.post("/trucks", truckData);
+    return res.data;
+  },
+  updateTruck: async (id, truckData) => {
+    const res = await apiClient.put(`/trucks/${id}`, truckData);
+    return res.data;
+  },
+  
+  // Authentication
   login: async (email, password) => {
     const res = await apiClient.post("/auth/login", { email, password });
     return res.data;
+  },
+  register: async (userData) => {
+    const res = await apiClient.post("/auth/register", userData);
+    return res.data;
+  },
+  getCurrentUser: async () => {
+    const res = await apiClient.get("/auth/me");
+    return res.data;
+  },
+  
+  // Helper methods
+  setAuthToken: (token) => {
+    if (token) {
+      localStorage.setItem("token", token);
+    } else {
+      localStorage.removeItem("token");
+    }
   }
 };
 

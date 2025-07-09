@@ -1,11 +1,43 @@
-import React from "react";
-import Dashboard from "../components/Dashboard";
+import React from 'react';
+import Dashboard from '../components/Dashboard';
 
-export default function Home() {
+const Home = ({ loads, drivers, trucks, createSampleData, loadData }) => {
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Peace Way Logistics</h1>
-      <Dashboard />
+    <div>
+      <Dashboard loads={loads} drivers={drivers} trucks={trucks} />
+      
+      <div style={{ marginTop: '20px' }}>
+        <button 
+          onClick={createSampleData}
+          style={{ 
+            padding: '10px 20px', 
+            backgroundColor: '#28a745', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Create Sample Data
+        </button>
+        
+        <button 
+          onClick={loadData}
+          style={{ 
+            padding: '10px 20px', 
+            backgroundColor: '#17a2b8', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginLeft: '10px'
+          }}
+        >
+          Refresh Data
+        </button>
+      </div>
     </div>
   );
-}
+};
+
+export default Home;
