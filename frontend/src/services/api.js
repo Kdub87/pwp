@@ -90,6 +90,52 @@ const api = {
     return res.data;
   },
   
+  // Rate confirmation
+  parseRateConfirmation: async (formData) => {
+    const res = await apiClient.post("/rate-confirmation/upload", formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
+  },
+  createLoadFromRateConfirmation: async (formData) => {
+    const res = await apiClient.post("/rate-confirmation/create-load", formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
+  },
+  
+  // Invoice management
+  generateInvoice: async (loadId) => {
+    // This will return a PDF file, so we need to handle it differently
+    window.open(`${API_URL}/invoices/${loadId}`, '_blank');
+  },
+  generateCustomInvoice: async (loadId, customData) => {
+    // This will return a PDF file, so we need to handle it differently
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `${API_URL}/invoices/${loadId}`;
+    form.target = '_blank';
+    
+    // Add the token as a hidden field
+    const tokenField = document.createElement('input');
+    tokenField.type = 'hidden';
+    tokenField.name = 'token';
+    tokenField.value = localStorage.getItem('token');
+    form.appendChild(tokenField);
+    
+    // Add the custom data as a hidden field
+    const dataField = document.createElement('input');
+    dataField.type = 'hidden';
+    dataField.name = 'data';
+    dataField.value = JSON.stringify(customData);
+    form.appendChild(dataField);
+    
+    // Submit the form
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+  },
+  
   // Helper methods
   setAuthToken: (token) => {
     if (token) {

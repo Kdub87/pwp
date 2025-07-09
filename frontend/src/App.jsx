@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom'
 import api from './services/api'
 import Dashboard from './components/Dashboard'
+import RateConfirmationUploader from './components/RateConfirmationUploader'
 import Login from './pages/Login'
 import Home from './pages/Home'
 
@@ -189,6 +190,9 @@ function App() {
                 </nav>
                 
                 <h2>📦 Load Management</h2>
+                
+                <RateConfirmationUploader onLoadCreated={() => loadData()} />
+                
                 {isLoading ? (
                   <p>Loading...</p>
                 ) : loads.length === 0 ? (
@@ -204,6 +208,7 @@ function App() {
                           <th style={{ padding: '10px', border: '1px solid #ddd' }}>Rate</th>
                           <th style={{ padding: '10px', border: '1px solid #ddd' }}>Distance</th>
                           <th style={{ padding: '10px', border: '1px solid #ddd' }}>Status</th>
+                          <th style={{ padding: '10px', border: '1px solid #ddd' }}>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -229,6 +234,22 @@ function App() {
                               }}>
                                 {load.status}
                               </span>
+                            </td>
+                            <td style={{ padding: '10px', border: '1px solid #ddd' }}>
+                              <button
+                                onClick={() => api.generateInvoice(load.loadId)}
+                                style={{ 
+                                  padding: '4px 8px', 
+                                  backgroundColor: '#007bff', 
+                                  color: 'white', 
+                                  border: 'none', 
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  fontSize: '0.9em'
+                                }}
+                              >
+                                Invoice
+                              </button>
                             </td>
                           </tr>
                         ))}
