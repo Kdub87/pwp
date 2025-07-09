@@ -135,6 +135,20 @@ const api = {
     form.submit();
     document.body.removeChild(form);
   },
+
+  // Delete endpoints
+  deleteLoad: async (id) => {
+    const res = await apiClient.delete(`/loads/${id}`);
+    return res.data;
+  },
+  deleteDriver: async (id) => {
+    const res = await apiClient.delete(`/drivers/${id}`);
+    return res.data;
+  },
+  deleteTruck: async (id) => {
+    const res = await apiClient.delete(`/trucks/${id}`);
+    return res.data;
+  },
   
   // Document management
   uploadDocument: async (loadId, formData) => {
@@ -163,6 +177,26 @@ const api = {
   },
   requestLoadUpdate: async (id) => {
     const res = await axios.post(`${API_URL}/broker/loads/${id}/request-update`);
+    return res.data;
+  },
+  
+  // Delete operations
+  deleteLoad: async (id) => {
+    const res = await apiClient.delete(`/loads/${id}`);
+    return res.data;
+  },
+  deleteDriver: async (id) => {
+    const res = await apiClient.delete(`/drivers/${id}`);
+    return res.data;
+  },
+  deleteTruck: async (id) => {
+    const res = await apiClient.delete(`/trucks/${id}`);
+    return res.data;
+  },
+  
+  // ELD data
+  getEldData: async () => {
+    const res = await apiClient.get("/eld");
     return res.data;
   },
   

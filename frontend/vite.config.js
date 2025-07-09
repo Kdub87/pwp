@@ -8,9 +8,5 @@ export default defineConfig({
     host: 'localhost'
   },
   root: '.',
-  esbuild: {
-    loader: {
-      '.js': 'jsx'
-    }
-  }
+  // Remove esbuild loader override, not needed if all JSX is in .jsx files
 })

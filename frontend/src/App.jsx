@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom'
 import api from './services/api'
-import Dashboard from './components/Dashboard'
-import RateConfirmationUploader from './components/RateConfirmationUploader'
-import Login from './pages/Login'
-import Home from './pages/Home'
-import AdminPortal from './pages/AdminPortal'
-import DriverPortal from './pages/DriverPortal'
-import BrokerPortal from './pages/BrokerPortal'
+import Dashboard from './components/Dashboard.jsx'
+import RateConfirmationUploader from './components/RateConfirmationUploader.jsx'
+import DriverForm from './components/DriverForm.jsx'
+import TruckForm from './components/TruckForm.jsx'
+import Login from './pages/Login.jsx'
+import Home from './pages/Home.jsx'
+import AdminPortal from './pages/AdminPortal.jsx'
+import DriverPortal from './pages/DriverPortal.jsx'
+import BrokerPortal from './pages/BrokerPortal.jsx'
 
 function App() {
   const [loads, setLoads] = useState([])
@@ -155,23 +157,44 @@ function App() {
                   <Link to="/trucks" style={{ textDecoration: 'none', color: '#007bff' }}>Trucks</Link>
                 </nav>
                 
-                <Dashboard loads={loads} drivers={drivers} trucks={trucks} />
+                <Dashboard 
+                  loads={loads} 
+                  drivers={drivers} 
+                  trucks={trucks}
+                  onRefresh={loadData}
+                  onRemoveLoad={async (id) => {
+                    if (window.confirm('Are you sure you want to remove this load?')) {
+                      try {
+                        await api.deleteLoad(id);
+                        loadData();
+                      } catch (err) {
+                        alert('Failed to delete load.');
+                      }
+                    }
+                  }}
+                  onRemoveDriver={async (id) => {
+                    if (window.confirm('Are you sure you want to remove this driver?')) {
+                      try {
+                        await api.deleteDriver(id);
+                        loadData();
+                      } catch (err) {
+                        alert('Failed to delete driver.');
+                      }
+                    }
+                  }}
+                  onRemoveTruck={async (id) => {
+                    if (window.confirm('Are you sure you want to remove this truck?')) {
+                      try {
+                        await api.deleteTruck(id);
+                        loadData();
+                      } catch (err) {
+                        alert('Failed to delete truck.');
+                      }
+                    }
+                  }}
+                />
                 
                 <div style={{ marginTop: '20px' }}>
-                  <button 
-                    onClick={createSampleData}
-                    style={{ 
-                      padding: '10px 20px', 
-                      backgroundColor: '#28a745', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '4px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Create Sample Data
-                  </button>
-                  
                   <button 
                     onClick={loadData}
                     style={{ 
@@ -181,7 +204,6 @@ function App() {
                       border: 'none', 
                       borderRadius: '4px',
                       cursor: 'pointer',
-                      marginLeft: '10px'
                     }}
                   >
                     Refresh Data
@@ -284,6 +306,11 @@ function App() {
                 </nav>
                 
                 <h2>👨‍💼 Driver Management</h2>
+                
+                {user && user.role === 'admin' && (
+                  <DriverForm onDriverAdded={loadData} />
+                )}
+                
                 {isLoading ? (
                   <p>Loading...</p>
                 ) : drivers.length === 0 ? (
@@ -331,6 +358,11 @@ function App() {
                 </nav>
                 
                 <h2>🚛 Fleet Management</h2>
+                
+                {user && user.role === 'admin' && (
+                  <TruckForm onTruckAdded={loadData} />
+                )}
+                
                 {isLoading ? (
                   <p>Loading...</p>
                 ) : trucks.length === 0 ? (

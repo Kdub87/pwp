@@ -98,12 +98,11 @@ const Login = ({ setIsAuthenticated, setUser }) => {
           style={{ 
             width: '100%', 
             padding: '10px', 
-            backgroundColor: '#007bff', 
-            color: 'white', 
-            border: 'none', 
+            backgroundColor: '#1D4ED8',
+            color: 'white',
+            border: 'none',
             borderRadius: '4px',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            opacity: isLoading ? 0.7 : 1
+            cursor: isLoading ? 'not-allowed' : 'pointer'
           }}
         >
           {isLoading ? 'Logging in...' : 'Login'}

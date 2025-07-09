@@ -20,6 +20,14 @@ const LoadSchema = new mongoose.Schema({
     type: String,
     uploadedAt: { type: Date, default: Date.now } 
   }],
+  invoices: [{ 
+    path: String, 
+    createdAt: { type: Date, default: Date.now } 
+  }],
+  updateRequests: [{ 
+    requestedAt: { type: Date, default: Date.now },
+    message: String
+  }],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
