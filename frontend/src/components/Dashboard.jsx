@@ -217,6 +217,81 @@ const Dashboard = ({ mode = 'admin', loads = [], drivers = [], trucks = [], onRe
     </div>
   );
 
+
+  // Driver dashboard section
+  const renderDriverSection = () => (
+    <div>
+      <h2 className="text-2xl font-bold mb-6">Driver Dashboard</h2>
+      <div className="mb-8">
+        <h3 className="text-xl font-semibold mb-4">My Loads</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border border-gray-300 p-2">Load ID</th>
+                <th className="border border-gray-300 p-2">Route</th>
+                <th className="border border-gray-300 p-2">Status</th>
+                <th className="border border-gray-300 p-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loads.map(load => (
+                <tr key={load._id}>
+                  <td className="border border-gray-300 p-2">{load.loadId}</td>
+                  <td className="border border-gray-300 p-2">{load.pickupLocation} → {load.deliveryLocation}</td>
+                  <td className="border border-gray-300 p-2">
+                    <select 
+                      value={load.status} 
+                      onChange={(e) => handleStatusUpdate(load._id, e.target.value)}
+                      className="border rounded p-1"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="assigned">Assigned</option>
+                      <option value="in-transit">In Transit</option>
+                      <option value="delivered">Delivered</option>
+                    </select>
+                  </td>
+                  <td className="border border-gray-300 p-2">
+                    <button 
+                      onClick={() => setSelectedLoad(load._id)}
+                      className="bg-blue-500 text-white px-2 py-1 rounded text-sm"
+                    >
+                      Upload Doc
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {selectedLoad && (
+        <div className="bg-gray-100 p-4 rounded">
+          <h4 className="font-semibold mb-2">Upload Document for Load {selectedLoad}</h4>
+          <input 
+            type="file" 
+            onChange={(e) => setUploadFile(e.target.files[0])}
+            className="mb-2"
+          />
+          <div>
+            <button 
+              onClick={() => handleDocumentUpload(selectedLoad)}
+              className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+            >
+              Upload
+            </button>
+            <button 
+              onClick={() => setSelectedLoad(null)}
+              className="bg-gray-500 text-white px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar 
@@ -227,327 +302,28 @@ const Dashboard = ({ mode = 'admin', loads = [], drivers = [], trucks = [], onRe
         activeSection={activeSection}
         onSectionChange={setActiveSection}
       />
-      
       <div className="lg:pl-64">
         <Header 
           onMenuClick={() => setSidebarOpen(true)}
           currentUser={currentUser}
         />
-        
         <main className="p-6">
           {error && (
             <Alert type="error" message={error} onClose={() => setError('')} />
           )}
-          
-          {activeSection === 'dashboard' && renderDashboardOverview()}
-          {activeSection === 'loads' && renderLoadsSection()}
-          {activeSection === 'drivers' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Driver Management</h2>
-                <Button onClick={() => { setModalType('addDriver'); setShowModal(true); setEditingItem(null); }}>+ New Driver</Button>
-              </div>
-              <Card padding="p-0">
-                <Table headers={['Driver', 'License', 'Contact', 'Status', 'Actions']}>
-                  {drivers.map(driver => (
-                    <tr key={driver._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                            <span className="text-sm font-medium text-blue-600">{driver.name.charAt(0)}</span>
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{driver.name}</div>
-                            <div className="text-sm text-gray-500">{driver.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{driver.licenseNumber}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{driver.phone}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge variant={driver.status === 'available' ? 'success' : driver.status === 'on-duty' ? 'warning' : 'default'}>
-                          {driver.status || 'available'}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <Button variant="outline" size="sm" onClick={() => { setEditingItem(driver); setModalType('editDriver'); setShowModal(true); }}>Edit</Button>
-                        {mode === 'admin' && (
-                          <Button variant="danger" size="sm" onClick={() => handleDelete('driver', driver._id)}>Delete</Button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </Table>
-              </Card>
-            </div>
-          )}
-          {activeSection === 'trucks' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Fleet Management</h2>
-                <Button onClick={() => { setModalType('addTruck'); setShowModal(true); setEditingItem(null); }}>+ New Truck</Button>
-              </div>
-              <Card padding="p-0">
-                <Table headers={['Truck', 'Details', 'Status', 'Actions']}>
-                  {trucks.map(truck => (
-                    <tr key={truck._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{truck.truckId}</div>
-                        <div className="text-sm text-gray-500">{truck.licensePlate}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">{truck.make} {truck.model}</div>
-                        <div className="text-sm text-gray-500">Year: {truck.year}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge variant={truck.status === 'available' ? 'success' : truck.status === 'in-use' ? 'warning' : truck.status === 'maintenance' ? 'danger' : 'default'}>
-                          {truck.status || 'available'}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <Button variant="outline" size="sm" onClick={() => { setEditingItem(truck); setModalType('editTruck'); setShowModal(true); }}>Edit</Button>
-                        {mode === 'admin' && (
-                          <Button variant="danger" size="sm" onClick={() => handleDelete('truck', truck._id)}>Delete</Button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </Table>
-              </Card>
-            </div>
+          {mode === 'driver' ? renderDriverSection() : (
+            <>
+              {activeSection === 'dashboard' && renderDashboardOverview()}
+              {activeSection === 'loads' && renderLoadsSection()}
+              {activeSection === 'drivers' && renderDriversSection()}
+              {activeSection === 'trucks' && renderTrucksSection()}
+            </>
           )}
         </main>
       </div>
-      
       {/* Modals would go here */}
     </div>
   );
-
-      {mode === 'admin' && (
-        <div>
-          <h2 className="text-2xl font-bold mb-6">Admin Dashboard</h2>
-          
-          {/* Statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-blue-100 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold">📦 Loads</h3>
-              <p>Total: {loads.length}</p>
-              <p>Pending: {loads.filter(l => l.status === 'pending').length}</p>
-              <p>In Transit: {loads.filter(l => l.status === 'in-transit').length}</p>
-            </div>
-            <div className="bg-purple-100 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold">👨‍💼 Drivers</h3>
-              <p>Total: {drivers.length}</p>
-              <p>Available: {drivers.filter(d => d.status === 'available').length}</p>
-            </div>
-            <div className="bg-green-100 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold">🚛 Trucks</h3>
-              <p>Total: {trucks.length}</p>
-              <p>Available: {trucks.filter(t => t.status === 'available').length}</p>
-            </div>
-          </div>
-
-          {/* Loads Table */}
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold mb-4">Loads</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border border-gray-300 p-2">Load ID</th>
-                    <th className="border border-gray-300 p-2">Route</th>
-                    <th className="border border-gray-300 p-2">Rate</th>
-                    <th className="border border-gray-300 p-2">Status</th>
-                    <th className="border border-gray-300 p-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loads.map(load => (
-                    <tr key={load._id}>
-                      <td className="border border-gray-300 p-2">{load.loadId}</td>
-                      <td className="border border-gray-300 p-2">{load.pickupLocation} → {load.deliveryLocation}</td>
-                      <td className="border border-gray-300 p-2">${load.rate}</td>
-                      <td className="border border-gray-300 p-2">
-                        <span className={`px-2 py-1 rounded text-sm ${
-                          load.status === 'delivered' ? 'bg-green-200 text-green-800' :
-                          load.status === 'in-transit' ? 'bg-yellow-200 text-yellow-800' :
-                          load.status === 'assigned' ? 'bg-blue-200 text-blue-800' :
-                          'bg-gray-200 text-gray-800'
-                        }`}>
-                          {load.status}
-                        </span>
-                      </td>
-                      <td className="border border-gray-300 p-2">
-                        <button 
-                          onClick={() => handleGenerateInvoice(load.loadId)}
-                          className="bg-blue-500 text-white px-2 py-1 rounded text-sm mr-2"
-                        >
-                          Invoice
-                        </button>
-                        <button 
-                          onClick={() => handleDelete('load', load._id)}
-                          className="bg-red-500 text-white px-2 py-1 rounded text-sm"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Drivers Table */}
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold mb-4">Drivers</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border border-gray-300 p-2">Name</th>
-                    <th className="border border-gray-300 p-2">License</th>
-                    <th className="border border-gray-300 p-2">Phone</th>
-                    <th className="border border-gray-300 p-2">Status</th>
-                    <th className="border border-gray-300 p-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {drivers.map(driver => (
-                    <tr key={driver._id}>
-                      <td className="border border-gray-300 p-2">{driver.name}</td>
-                      <td className="border border-gray-300 p-2">{driver.licenseNumber}</td>
-                      <td className="border border-gray-300 p-2">{driver.phone}</td>
-                      <td className="border border-gray-300 p-2">{driver.status || 'available'}</td>
-                      <td className="border border-gray-300 p-2">
-                        <button 
-                          onClick={() => handleDelete('driver', driver._id)}
-                          className="bg-red-500 text-white px-2 py-1 rounded text-sm"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Trucks Table */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4">Trucks</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border border-gray-300 p-2">Truck ID</th>
-                    <th className="border border-gray-300 p-2">License Plate</th>
-                    <th className="border border-gray-300 p-2">Make/Model</th>
-                    <th className="border border-gray-300 p-2">Status</th>
-                    <th className="border border-gray-300 p-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {trucks.map(truck => (
-                    <tr key={truck._id}>
-                      <td className="border border-gray-300 p-2">{truck.truckId}</td>
-                      <td className="border border-gray-300 p-2">{truck.licensePlate}</td>
-                      <td className="border border-gray-300 p-2">{truck.make} {truck.model}</td>
-                      <td className="border border-gray-300 p-2">{truck.status || 'available'}</td>
-                      <td className="border border-gray-300 p-2">
-                        <button 
-                          onClick={() => handleDelete('truck', truck._id)}
-                          className="bg-red-500 text-white px-2 py-1 rounded text-sm"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {mode === 'driver' && (
-        <div>
-          <h2 className="text-2xl font-bold mb-6">Driver Dashboard</h2>
-          
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold mb-4">My Loads</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border border-gray-300 p-2">Load ID</th>
-                    <th className="border border-gray-300 p-2">Route</th>
-                    <th className="border border-gray-300 p-2">Status</th>
-                    <th className="border border-gray-300 p-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loads.map(load => (
-                    <tr key={load._id}>
-                      <td className="border border-gray-300 p-2">{load.loadId}</td>
-                      <td className="border border-gray-300 p-2">{load.pickupLocation} → {load.deliveryLocation}</td>
-                      <td className="border border-gray-300 p-2">
-                        <select 
-                          value={load.status} 
-                          onChange={(e) => handleStatusUpdate(load._id, e.target.value)}
-                          className="border rounded p-1"
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="assigned">Assigned</option>
-                          <option value="in-transit">In Transit</option>
-                          <option value="delivered">Delivered</option>
-                        </select>
-                      </td>
-                      <td className="border border-gray-300 p-2">
-                        <button 
-                          onClick={() => setSelectedLoad(load._id)}
-                          className="bg-blue-500 text-white px-2 py-1 rounded text-sm"
-                        >
-                          Upload Doc
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {selectedLoad && (
-            <div className="bg-gray-100 p-4 rounded">
-              <h4 className="font-semibold mb-2">Upload Document for Load {selectedLoad}</h4>
-              <input 
-                type="file" 
-                onChange={(e) => setUploadFile(e.target.files[0])}
-                className="mb-2"
-              />
-              <div>
-                <button 
-                  onClick={() => handleDocumentUpload(selectedLoad)}
-                  className="bg-green-500 text-white px-4 py-2 rounded mr-2"
-                >
-                  Upload
-                </button>
-                <button 
-                  onClick={() => setSelectedLoad(null)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
+}
 
 export default Dashboard;
