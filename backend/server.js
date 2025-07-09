@@ -8,6 +8,7 @@ const brokerRoutes = require('./routes/brokerRoutes');
 const authRoutes = require('./routes/authRoutes');
 const rateConfirmationRoutes = require('./routes/rateConfirmationRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes');
+const documentRoutes = require('./routes/documentRoutes');
 const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
@@ -66,6 +67,7 @@ app.use('/api/broker', brokerRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/rate-confirmation', rateConfirmationRoutes);
 app.use('/api/invoices', invoiceRoutes);
+app.use('/api/loads', documentRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

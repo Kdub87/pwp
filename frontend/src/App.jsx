@@ -5,6 +5,9 @@ import Dashboard from './components/Dashboard'
 import RateConfirmationUploader from './components/RateConfirmationUploader'
 import Login from './pages/Login'
 import Home from './pages/Home'
+import AdminPortal from './pages/AdminPortal'
+import DriverPortal from './pages/DriverPortal'
+import BrokerPortal from './pages/BrokerPortal'
 
 function App() {
   const [loads, setLoads] = useState([])
@@ -132,6 +135,15 @@ function App() {
             <Login setIsAuthenticated={setIsAuthenticated} setUser={setUser} /> : 
             <Navigate to="/" />
           } />
+          
+          {/* Admin Portal */}
+          <Route path="/admin" element={<AdminPortal />} />
+          
+          {/* Driver Portal */}
+          <Route path="/driver" element={<DriverPortal />} />
+          
+          {/* Broker Portal (public) */}
+          <Route path="/broker" element={<BrokerPortal />} />
           
           <Route path="/" element={
             <ProtectedRoute>

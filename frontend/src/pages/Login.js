@@ -20,7 +20,15 @@ const Login = ({ setIsAuthenticated, setUser }) => {
       localStorage.setItem('user', JSON.stringify(response.user));
       setIsAuthenticated(true);
       setUser(response.user);
-      navigate('/');
+      
+      // Redirect based on user role
+      if (response.user.role === 'admin') {
+        navigate('/admin');
+      } else if (response.user.role === 'driver') {
+        navigate('/driver');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
     } finally {

@@ -136,6 +136,36 @@ const api = {
     document.body.removeChild(form);
   },
   
+  // Document management
+  uploadDocument: async (loadId, formData) => {
+    const res = await apiClient.post(`/loads/${loadId}/documents`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
+  },
+  getLoadDocuments: async (loadId) => {
+    const res = await apiClient.get(`/loads/${loadId}/documents`);
+    return res.data;
+  },
+  deleteDocument: async (loadId, documentId) => {
+    const res = await apiClient.delete(`/loads/${loadId}/documents/${documentId}`);
+    return res.data;
+  },
+  
+  // Broker portal
+  getBrokerLoads: async () => {
+    const res = await axios.get(`${API_URL}/broker/loads`);
+    return res.data;
+  },
+  getBrokerLoad: async (id) => {
+    const res = await axios.get(`${API_URL}/broker/loads/${id}`);
+    return res.data;
+  },
+  requestLoadUpdate: async (id) => {
+    const res = await axios.post(`${API_URL}/broker/loads/${id}/request-update`);
+    return res.data;
+  },
+  
   // Helper methods
   setAuthToken: (token) => {
     if (token) {

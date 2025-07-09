@@ -14,6 +14,12 @@ const LoadSchema = new mongoose.Schema({
   distance: { type: Number },
   weight: { type: Number },
   invoiceGenerated: { type: Boolean, default: false },
+  documents: [{ 
+    path: String, 
+    name: String,
+    type: String,
+    uploadedAt: { type: Date, default: Date.now } 
+  }],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Dashboard = ({ loads, drivers, trucks }) => {
+const Dashboard = ({ loads, drivers, trucks, isAdmin = false, onRefresh }) => {
   // Calculate statistics
   const pendingLoads = loads.filter(load => load.status === 'pending').length;
   const inTransitLoads = loads.filter(load => load.status === 'in-transit').length;
