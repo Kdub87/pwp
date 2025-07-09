@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import api from '../services/api';
-import { Card, StatCard, Badge, Button, Table, Modal, LoadingSpinner, Alert } from './UI';
-import { Sidebar, Header } from './Layout';
 
 const Dashboard = ({ mode = 'admin', loads = [], drivers = [], trucks = [], onRefresh, currentUser, onLogout }) => {
   const [loading, setLoading] = useState(false);
@@ -10,9 +8,6 @@ const Dashboard = ({ mode = 'admin', loads = [], drivers = [], trucks = [], onRe
   const [uploadFile, setUploadFile] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState('');
-  const [editingItem, setEditingItem] = useState(null);
 
   const handleDelete = async (type, id) => {
     if (!window.confirm(`Delete this ${type}?`)) return;
@@ -54,276 +49,401 @@ const Dashboard = ({ mode = 'admin', loads = [], drivers = [], trucks = [], onRe
     setLoading(false);
   };
 
-  const handleGenerateInvoice = async (loadId) => {
-    try {
-      await api.generateInvoice(loadId);
-    } catch (err) {
-      setError('Failed to generate invoice');
-    }
-  };
-
-  const renderDashboardOverview = () => (
-    <div className="space-y-6">
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Active Loads"
-          value={loads.filter(l => ['assigned', 'in-transit'].includes(l.status)).length}
-          subtitle={`${loads.length} total loads`}
-          icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path></svg>}
-          color="blue"
-          trend="up"
-          trendValue="12%"
-        />
-        <StatCard
-          title="Available Drivers"
-          value={drivers.filter(d => d.status === 'available').length}
-          subtitle={`${drivers.length} total drivers`}
-          icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path></svg>}
-          color="green"
-          trend="up"
-          trendValue="5%"
-        />
-        <StatCard
-          title="Fleet Utilization"
-          value={`${Math.round((trucks.filter(t => t.status === 'in-use').length / trucks.length) * 100)}%`}
-          subtitle={`${trucks.length} total trucks`}
-          icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd"></path></svg>}
-          color="purple"
-          trend="down"
-          trendValue="3%"
-        />
-        <StatCard
-          title="Revenue (MTD)"
-          value="$47,250"
-          subtitle="vs $42,100 last month"
-          icon={<svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"></path><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd"></path></svg>}
-          color="green"
-          trend="up"
-          trendValue="12%"
-        />
-      </div>
-
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Loads</h3>
-            <Button variant="outline" size="sm" onClick={() => setActiveSection('loads')}>View All</Button>
-          </div>
-          <div className="space-y-3">
-            {loads.slice(0, 5).map(load => (
-              <div key={load._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">{load.loadId}</p>
-                  <p className="text-sm text-gray-600">{load.pickupLocation} → {load.deliveryLocation}</p>
-                </div>
-                <Badge variant={load.status === 'delivered' ? 'success' : load.status === 'in-transit' ? 'warning' : 'info'}>
-                  {load.status}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Driver Status</h3>
-            <Button variant="outline" size="sm" onClick={() => setActiveSection('drivers')}>View All</Button>
-          </div>
-          <div className="space-y-3">
-            {drivers.slice(0, 5).map(driver => (
-              <div key={driver._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                    <span className="text-sm font-medium text-blue-600">{driver.name.charAt(0)}</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{driver.name}</p>
-                    <p className="text-sm text-gray-600">{driver.licenseNumber}</p>
-                  </div>
-                </div>
-                <Badge variant={driver.status === 'available' ? 'success' : driver.status === 'on-duty' ? 'warning' : 'default'}>
-                  {driver.status || 'available'}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
-
-  const renderLoadsSection = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Load Management</h2>
-        <div className="flex space-x-3">
-          <Button variant="outline" onClick={() => { setModalType('filter'); setShowModal(true); }}>Filter</Button>
-          <Button onClick={() => { setModalType('addLoad'); setShowModal(true); setEditingItem(null); }}>+ New Load</Button>
-        </div>
-      </div>
-      
-      <Card padding="p-0">
-        <Table headers={['Load ID', 'Route', 'Driver', 'Status', 'Rate', 'Actions']}>
-          {loads.map(load => (
-            <tr key={load._id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">{load.loadId}</div>
-                <div className="text-sm text-gray-500">{new Date(load.pickupDate).toLocaleDateString()}</div>
-              </td>
-              <td className="px-6 py-4">
-                <div className="text-sm text-gray-900">{load.pickupLocation}</div>
-                <div className="text-sm text-gray-500">→ {load.deliveryLocation}</div>
-                {load.distance && <div className="text-xs text-gray-400">{load.distance} miles</div>}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {load.driver ? (
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-2">
-                      <span className="text-xs font-medium">{load.driver.name?.charAt(0)}</span>
-                    </div>
-                    <div className="text-sm text-gray-900">{load.driver.name}</div>
-                  </div>
-                ) : (
-                  <span className="text-sm text-gray-500">Unassigned</span>
-                )}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <Badge variant={load.status === 'delivered' ? 'success' : load.status === 'in-transit' ? 'warning' : load.status === 'assigned' ? 'info' : 'default'}>
-                  {load.status}
-                </Badge>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                ${load.rate?.toLocaleString()}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                <Button variant="outline" size="sm" onClick={() => { setEditingItem(load); setModalType('editLoad'); setShowModal(true); }}>Edit</Button>
-                <Button variant="outline" size="sm" onClick={() => api.generateInvoice(load.loadId)}>Invoice</Button>
-                {mode === 'admin' && (
-                  <Button variant="danger" size="sm" onClick={() => handleDelete('load', load._id)}>Delete</Button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </Table>
-      </Card>
-    </div>
-  );
-
   if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <LoadingSpinner size="lg" />
-    </div>
-  );
-
-
-  // Driver dashboard section
-  const renderDriverSection = () => (
-    <div>
-      <h2 className="text-2xl font-bold mb-6">Driver Dashboard</h2>
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4">My Loads</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-300 p-2">Load ID</th>
-                <th className="border border-gray-300 p-2">Route</th>
-                <th className="border border-gray-300 p-2">Status</th>
-                <th className="border border-gray-300 p-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loads.map(load => (
-                <tr key={load._id}>
-                  <td className="border border-gray-300 p-2">{load.loadId}</td>
-                  <td className="border border-gray-300 p-2">{load.pickupLocation} → {load.deliveryLocation}</td>
-                  <td className="border border-gray-300 p-2">
-                    <select 
-                      value={load.status} 
-                      onChange={(e) => handleStatusUpdate(load._id, e.target.value)}
-                      className="border rounded p-1"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="assigned">Assigned</option>
-                      <option value="in-transit">In Transit</option>
-                      <option value="delivered">Delivered</option>
-                    </select>
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    <button 
-                      onClick={() => setSelectedLoad(load._id)}
-                      className="bg-blue-500 text-white px-2 py-1 rounded text-sm"
-                    >
-                      Upload Doc
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      {selectedLoad && (
-        <div className="bg-gray-100 p-4 rounded">
-          <h4 className="font-semibold mb-2">Upload Document for Load {selectedLoad}</h4>
-          <input 
-            type="file" 
-            onChange={(e) => setUploadFile(e.target.files[0])}
-            className="mb-2"
-          />
-          <div>
-            <button 
-              onClick={() => handleDocumentUpload(selectedLoad)}
-              className="bg-green-500 text-white px-4 py-2 rounded mr-2"
-            >
-              Upload
-            </button>
-            <button 
-              onClick={() => setSelectedLoad(null)}
-              className="bg-gray-500 text-white px-4 py-2 rounded"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)}
-        currentUser={currentUser}
-        onLogout={onLogout}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
-      />
+      {/* Sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:static lg:inset-0`}>
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-between h-16 px-6 border-b">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">PWP</span>
+              </div>
+              <span className="ml-3 text-xl font-semibold text-gray-900">Fleet Pro</span>
+            </div>
+            <button onClick={() => setSidebarOpen(false)} className="lg:hidden">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <nav className="flex-1 px-4 py-6 space-y-2">
+            {[
+              { id: 'dashboard', label: 'Dashboard', icon: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z' },
+              { id: 'loads', label: 'Loads', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
+              { id: 'drivers', label: 'Drivers', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z' },
+              { id: 'trucks', label: 'Fleet', icon: 'M8 17a4 4 0 100-8 4 4 0 000 8zM12 1v6h8a4 4 0 014 4v6a4 4 0 01-4 4h-8v6' }
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveSection(item.id)}
+                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  activeSection === item.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                </svg>
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="border-t p-4">
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                <span className="text-sm font-medium">{currentUser?.name?.charAt(0) || 'U'}</span>
+              </div>
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-medium">{currentUser?.name || 'User'}</p>
+                <p className="text-xs text-gray-500 capitalize">{currentUser?.role || 'user'}</p>
+              </div>
+              <button onClick={onLogout} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
       <div className="lg:pl-64">
-        <Header 
-          onMenuClick={() => setSidebarOpen(true)}
-          currentUser={currentUser}
-        />
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b">
+          <div className="flex items-center justify-between h-16 px-6">
+            <div className="flex items-center">
+              <button onClick={() => setSidebarOpen(true)} className="lg:hidden mr-4">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                {activeSection === 'dashboard' ? 'Dashboard' : 
+                 activeSection === 'loads' ? 'Load Management' :
+                 activeSection === 'drivers' ? 'Driver Management' : 'Fleet Management'}
+              </h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                + New {activeSection === 'loads' ? 'Load' : activeSection === 'drivers' ? 'Driver' : 'Truck'}
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
         <main className="p-6">
           {error && (
-            <Alert type="error" message={error} onClose={() => setError('')} />
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+              {error}
+              <button onClick={() => setError('')} className="float-right font-bold">×</button>
+            </div>
           )}
-          {mode === 'driver' ? renderDriverSection() : (
-            <>
-              {activeSection === 'dashboard' && renderDashboardOverview()}
-              {activeSection === 'loads' && renderLoadsSection()}
-              {activeSection === 'drivers' && renderDriversSection()}
-              {activeSection === 'trucks' && renderTrucksSection()}
-            </>
+
+          {activeSection === 'dashboard' && (
+            <div className="space-y-6">
+              {/* Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-white p-6 rounded-lg shadow-sm border">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Total Loads</p>
+                      <p className="text-2xl font-bold text-gray-900">{loads.length}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Active Drivers</p>
+                      <p className="text-2xl font-bold text-gray-900">{drivers.filter(d => d.status === 'available').length}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 17a4 4 0 100-8 4 4 0 000 8zM12 1v6h8a4 4 0 014 4v6a4 4 0 01-4 4h-8v6" />
+                      </svg>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Available Trucks</p>
+                      <p className="text-2xl font-bold text-gray-900">{trucks.filter(t => t.status === 'available').length}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm border">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-yellow-100 rounded-lg">
+                      <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-600">Revenue (MTD)</p>
+                      <p className="text-2xl font-bold text-gray-900">$47,250</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Activity */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg shadow-sm border">
+                  <div className="p-6 border-b">
+                    <h3 className="text-lg font-semibold text-gray-900">Recent Loads</h3>
+                  </div>
+                  <div className="p-6">
+                    <div className="space-y-4">
+                      {loads.slice(0, 5).map(load => (
+                        <div key={load._id} className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-gray-900">{load.loadId}</p>
+                            <p className="text-sm text-gray-600">{load.pickupLocation} → {load.deliveryLocation}</p>
+                          </div>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            load.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                            load.status === 'in-transit' ? 'bg-yellow-100 text-yellow-800' :
+                            load.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {load.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-sm border">
+                  <div className="p-6 border-b">
+                    <h3 className="text-lg font-semibold text-gray-900">Driver Status</h3>
+                  </div>
+                  <div className="p-6">
+                    <div className="space-y-4">
+                      {drivers.slice(0, 5).map(driver => (
+                        <div key={driver._id} className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                              <span className="text-sm font-medium text-blue-600">{driver.name.charAt(0)}</span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">{driver.name}</p>
+                              <p className="text-sm text-gray-600">{driver.licenseNumber}</p>
+                            </div>
+                          </div>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            driver.status === 'available' ? 'bg-green-100 text-green-800' :
+                            driver.status === 'on-duty' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {driver.status || 'available'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'loads' && (
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Load ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {loads.map(load => (
+                      <tr key={load._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{load.loadId}</div>
+                          <div className="text-sm text-gray-500">{new Date(load.pickupDate).toLocaleDateString()}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">{load.pickupLocation}</div>
+                          <div className="text-sm text-gray-500">→ {load.deliveryLocation}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {load.driver ? (
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-2">
+                                <span className="text-xs font-medium">{load.driver.name?.charAt(0)}</span>
+                              </div>
+                              <div className="text-sm text-gray-900">{load.driver.name}</div>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-500">Unassigned</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            load.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                            load.status === 'in-transit' ? 'bg-yellow-100 text-yellow-800' :
+                            load.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {load.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          ${load.rate?.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button className="text-blue-600 hover:text-blue-900">Edit</button>
+                            <button className="text-green-600 hover:text-green-900" onClick={() => api.generateInvoice(load.loadId)}>Invoice</button>
+                            {mode === 'admin' && (
+                              <button className="text-red-600 hover:text-red-900" onClick={() => handleDelete('load', load._id)}>Delete</button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'drivers' && (
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">License</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {drivers.map(driver => (
+                      <tr key={driver._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                              <span className="text-sm font-medium text-blue-600">{driver.name.charAt(0)}</span>
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{driver.name}</div>
+                              <div className="text-sm text-gray-500">{driver.email}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{driver.licenseNumber}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{driver.phone}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            driver.status === 'available' ? 'bg-green-100 text-green-800' :
+                            driver.status === 'on-duty' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {driver.status || 'available'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button className="text-blue-600 hover:text-blue-900">Edit</button>
+                            {mode === 'admin' && (
+                              <button className="text-red-600 hover:text-red-900" onClick={() => handleDelete('driver', driver._id)}>Delete</button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'trucks' && (
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Truck</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {trucks.map(truck => (
+                      <tr key={truck._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{truck.truckId}</div>
+                          <div className="text-sm text-gray-500">{truck.licensePlate}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">{truck.make} {truck.model}</div>
+                          <div className="text-sm text-gray-500">Year: {truck.year}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            truck.status === 'available' ? 'bg-green-100 text-green-800' :
+                            truck.status === 'in-use' ? 'bg-yellow-100 text-yellow-800' :
+                            truck.status === 'maintenance' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {truck.status || 'available'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button className="text-blue-600 hover:text-blue-900">Edit</button>
+                            {mode === 'admin' && (
+                              <button className="text-red-600 hover:text-red-900" onClick={() => handleDelete('truck', truck._id)}>Delete</button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
         </main>
       </div>
-      {/* Modals would go here */}
     </div>
   );
-}
+};
 
 export default Dashboard;
