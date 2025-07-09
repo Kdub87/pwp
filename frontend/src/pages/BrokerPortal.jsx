@@ -110,7 +110,8 @@ const BrokerPortal = () => {
           )}
         </div>
       </div>
-    </div>
+      </div> {/* closes max-w-7xl container */}
+    </div> // closes min-h-screen bg-gray-50
   );
 };
 
