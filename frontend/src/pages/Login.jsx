@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { Button, Alert, LoadingSpinner } from '../components/UI';
 
 const Login = ({ setIsAuthenticated, setUser }) => {
   const [email, setEmail] = useState('');
@@ -37,77 +38,105 @@ const Login = ({ setIsAuthenticated, setUser }) => {
   };
 
   return (
-    <div style={{ 
-      maxWidth: '400px', 
-      margin: '100px auto', 
-      padding: '20px', 
-      borderRadius: '8px',
-      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-      backgroundColor: 'white'
-    }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>🚛 PWP Login</h2>
-      
-      {error && (
-        <div style={{ 
-          padding: '10px', 
-          backgroundColor: '#f8d7da', 
-          color: '#721c24',
-          borderRadius: '4px',
-          marginBottom: '20px'
-        }}>
-          {error}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* Logo and Header */}
+          <div className="text-center mb-8">
+            <div className="mx-auto w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
+              <span className="text-white font-bold text-2xl">PWP</span>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900">Fleet Pro</h2>
+            <p className="mt-2 text-gray-600">Sign in to your account</p>
+          </div>
+
+          {error && (
+            <div className="mb-6">
+              <Alert type="error" message={error} onClose={() => setError('')} />
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                placeholder="Enter your email"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                placeholder="Enter your password"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                  Remember me
+                </label>
+              </div>
+              <button type="button" className="text-sm text-blue-600 hover:text-blue-500">
+                Forgot password?
+              </button>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 text-base"
+              size="lg"
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <LoadingSpinner size="sm" />
+                  <span className="ml-2">Signing in...</span>
+                </div>
+              ) : (
+                'Sign In'
+              )}
+            </Button>
+          </form>
+
+          {/* Demo Credentials */}
+          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</h4>
+            <div className="text-xs text-gray-600 space-y-1">
+              <p><strong>Admin:</strong> admin@pwp.com / admin123</p>
+              <p><strong>Driver:</strong> driver@pwp.com / driver123</p>
+            </div>
+          </div>
         </div>
-      )}
-      
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ 
-              width: '100%', 
-              padding: '10px', 
-              borderRadius: '4px',
-              border: '1px solid #ddd'
-            }}
-          />
+
+        {/* Footer */}
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            © 2024 PWP Fleet Management. All rights reserved.
+          </p>
         </div>
-        
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '5px' }}>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ 
-              width: '100%', 
-              padding: '10px', 
-              borderRadius: '4px',
-              border: '1px solid #ddd'
-            }}
-          />
-        </div>
-        
-        <button 
-          type="submit" 
-          disabled={isLoading}
-          style={{ 
-            width: '100%', 
-            padding: '10px', 
-            backgroundColor: '#1D4ED8',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: isLoading ? 'not-allowed' : 'pointer'
-          }}
-        >
-          {isLoading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
+      </div>
     </div>
   );
 };
