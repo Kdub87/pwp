@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import Dashboard from '../components/Dashboard';
-import RateConfirmationUploader from '../components/RateConfirmationUploader';
+import ModernDashboard from '../components/ModernDashboard';
 
 const AdminPortal = () => {
   const [user, setUser] = useState(null);
@@ -43,7 +42,6 @@ const AdminPortal = () => {
       setTrucks(trucksData);
     } catch (error) {
       console.error('Error loading data:', error);
-      // If unauthorized, redirect to login
       if (error.response?.status === 401) {
         navigate('/login');
       }
@@ -58,14 +56,8 @@ const AdminPortal = () => {
     navigate('/login');
   };
 
-
-
-  if (isLoading) {
-    return <div style={{ padding: '20px' }}>Loading...</div>;
-  }
-
   return (
-    <Dashboard 
+    <ModernDashboard 
       mode="admin" 
       loads={loads} 
       drivers={drivers} 

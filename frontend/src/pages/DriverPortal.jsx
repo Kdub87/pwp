@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import Dashboard from '../components/Dashboard';
+import ModernDashboard from '../components/ModernDashboard';
 
 const DriverPortal = () => {
   const [user, setUser] = useState(null);
@@ -31,6 +31,7 @@ const DriverPortal = () => {
     try {
       setIsLoading(true);
       const loadsData = await api.getLoads();
+      // Filter loads for this driver (in a real app, backend would handle this)
       setLoads(loadsData);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -48,12 +49,8 @@ const DriverPortal = () => {
     navigate('/login');
   };
 
-  if (isLoading) {
-    return <div className="p-4 text-center">Loading...</div>;
-  }
-
   return (
-    <Dashboard 
+    <ModernDashboard 
       mode="driver" 
       loads={loads} 
       drivers={[]} 
